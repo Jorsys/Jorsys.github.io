@@ -212,7 +212,7 @@
         #inventory-resources-content,
         #resources-content,
         #general-skills-content {
-            display: block;
+            display: none;
         }
 
         /* Add style for the progress bar labels/values */
@@ -248,7 +248,7 @@
                <h2 class="section-title">Información Básica</h2>
                <button aria-label="Mostrar u ocultar información básica" onclick="toggleSection('basic-info-content', this)">Mostrar</button>
            </div>
-           <div id="basic-info-content">
+           <div id="basic-info-content" style="display: none;">
                <div class="grid">
                     <div class="form-group">
                         <label for="character-name">Nombre:</label>
@@ -272,7 +272,7 @@
                 <h2 class="section-title">Habilidades de Lucha</h2>
                 <button aria-label="Mostrar u ocultar habilidades de lucha" onclick="toggleSection('combat-skills-content', this)">Mostrar</button>
             </div>
-            <div id="combat-skills-content">
+            <div id="combat-skills-content" style="display: none;">
                 <div class="grid">
                     <div class="form-group-num">
                         <label for="melee-skill">Hab. Combate:</label>
@@ -290,14 +290,114 @@
             </div>
         </section>
 
+        <!-- Recursos -->
+        <section class="section" id="resources">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="section-title">Recursos</h2>
+                <button aria-label="Mostrar u ocultar recursos" onclick="toggleSection('resources-content', this)">Mostrar</button>
+            </div>
+            <div id="resources-content" style="display: none;">
+                <!-- Vida -->
+                <div class="form-group-num">
+                    <label for="current-health">Vida: Actual / Máxima</label>
+                    <div class="health-controls">
+                        <input type="number" id="current-health" class="health-input" value="10" required>
+                        <span>/</span>
+                        <input type="number" id="max-health" class="health-input" value="10" required>
+                        <button aria-label="Reducir vida en 10" onclick="modifyHealth(-10)">-10</button>
+                        <button aria-label="Reducir vida en 5" onclick="modifyHealth(-5)">-5</button>
+                        <button aria-label="Reducir vida en 1" onclick="modifyHealth(-1)">-1</button>
+                        <button aria-label="Aumentar vida en 1" onclick="modifyHealth(1)">+1</button>
+                        <button aria-label="Aumentar vida en 5" onclick="modifyHealth(5)">+5</button>
+                        <button aria-label="Aumentar vida en 10" onclick="modifyHealth(10)">+10</button>
+                        <button aria-label="Curar vida al máximo" onclick="healToFull()">Curar</button>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" id="health-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <!-- Aguante -->
+                <div class="form-group-num">
+                    <label for="current-stamina">Aguante: Actual / Máximo</label>
+                    <div class="health-controls">
+                        <input type="number" id="current-stamina" class="health-input" value="5" required>
+                        <span>/</span>
+                        <input type="number" id="max-stamina" class="health-input" value="5" required>
+                        <button aria-label="Reducir aguante en 10" onclick="modifyResource('stamina', -10)">-10</button>
+                        <button aria-label="Reducir aguante en 5" onclick="modifyResource('stamina', -5)">-5</button>
+                        <button aria-label="Reducir aguante en 1" onclick="modifyResource('stamina', -1)">-1</button>
+                        <button aria-label="Aumentar aguante en 1" onclick="modifyResource('stamina', 1)">+1</button>
+                        <button aria-label="Aumentar aguante en 5" onclick="modifyResource('stamina', 5)">+5</button>
+                        <button aria-label="Aumentar aguante en 10" onclick="modifyResource('stamina', 10)">+10</button>
+                        <button aria-label="Restaurar aguante al máximo" onclick="restoreResourceToMax('stamina')">Restaurar</button>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" id="stamina-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <!-- Maná -->
+                <div class="form-group-num">
+                    <label for="current-mana">Maná: Actual / Máximo</label>
+                    <div class="health-controls">
+                        <input type="number" id="current-mana" class="health-input" value="3" required>
+                        <span>/</span>
+                        <input type="number" id="max-mana" class="health-input" value="3" required>
+                        <button aria-label="Reducir maná en 10" onclick="modifyResource('mana', -10)">-10</button>
+                        <button aria-label="Reducir maná en 5" onclick="modifyResource('mana', -5)">-5</button>
+                        <button aria-label="Reducir maná en 1" onclick="modifyResource('mana', -1)">-1</button>
+                        <button aria-label="Aumentar maná en 1" onclick="modifyResource('mana', 1)">+1</button>
+                        <button aria-label="Aumentar maná en 5" onclick="modifyResource('mana', 5)">+5</button>
+                        <button aria-label="Aumentar maná en 10" onclick="modifyResource('mana', 10)">+10</button>
+                        <button aria-label="Restaurar maná al máximo" onclick="restoreResourceToMax('mana')">Restaurar</button>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" id="mana-bar" style="width: 100%"></div>
+                    </div>
+                </div>
+
+                <!-- Armadura Equipada -->
+                <div class="armor-section">
+                    <h3>Armadura Equipada</h3>
+                    <div class="grid armor-stats">
+                        <div class="form-group-num">
+                            <label for="armor-resistance">Armadura:</label>
+                            <input type="number" id="armor-resistance" min="0" value="0" required>
+                        </div>
+                        <div class="form-group-num">
+                            <label for="armor-block">Bloqueo:</label>
+                            <input type="number" id="armor-block" min="0" value="0" required>
+                        </div>
+                        <div class="form-group-num">
+                            <label for="armor-magic">Magia:</label>
+                            <input type="number" id="armor-magic" min="0" value="0" required>
+                        </div>
+                        <div class="form-group-num">
+                            <label for="armor-extra">Extra:</label>
+                            <input type="number" id="armor-extra" min="0" value="0" required>
+                        </div>
+                    </div>
+                    <div class="form-group-num">
+                        <label for="current-armor">Resistencia Actual:</label>
+                        <input type="number" id="current-armor" class="health-input" value="0" required>
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" id="armor-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Inventario Básico -->
         <section class="section" id="inventory-resources">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="section-title">Inventario Básico</h2>
                 <button aria-label="Mostrar u ocultar inventario básico" onclick="toggleSection('inventory-resources-content', this)">Mostrar</button>
             </div>
-            <div id="inventory-resources-content">
+            <div id="inventory-resources-content" style="display: none;">
                 <div class="grid">
+                  
                     <!-- Monedero -->
                     <div class="form-group-num">
                         <label for="character-gold">Oro:</label>
@@ -387,7 +487,7 @@
                    <button aria-label="Mostrar u ocultar habilidades generales" onclick="toggleGeneralSkills()">Mostrar</button>
                </div>
                
-               <div id="general-skills-content">
+               <div id="general-skills-content" style="display: none;">
                    <!-- Percepción -->
                    <div class="skill-category">
                        <h3>Percepción</h3>
@@ -462,112 +562,13 @@
                </div>
            </section>
 
-           <!-- Recursos -->
-           <section class="section" id="resources">
-               <div style="display: flex; justify-content: space-between; align-items: center;">
-                   <h2 class="section-title">Recursos</h2>
-                   <button aria-label="Mostrar u ocultar recursos" onclick="toggleSection('resources-content', this)">Mostrar</button>
-               </div>
-               <div id="resources-content">
-                   <!-- Vida -->
-                   <div class="form-group-num">
-                       <label for="current-health">Vida: Actual / Máxima</label>
-                       <div class="health-controls">
-                           <input type="number" id="current-health" class="health-input" value="10" required>
-                           <span>/</span>
-                           <input type="number" id="max-health" class="health-input" value="10" required>
-                           <button aria-label="Reducir vida en 10" onclick="modifyHealth(-10)">-10</button>
-                           <button aria-label="Reducir vida en 5" onclick="modifyHealth(-5)">-5</button>
-                           <button aria-label="Reducir vida en 1" onclick="modifyHealth(-1)">-1</button>
-                           <button aria-label="Aumentar vida en 1" onclick="modifyHealth(1)">+1</button>
-                           <button aria-label="Aumentar vida en 5" onclick="modifyHealth(5)">+5</button>
-                           <button aria-label="Aumentar vida en 10" onclick="modifyHealth(10)">+10</button>
-                           <button aria-label="Curar vida al máximo" onclick="healToFull()">Curar</button>
-                       </div>
-                       <div class="progress-bar">
-                           <div class="progress-bar-fill" id="health-bar" style="width: 100%"></div>
-                       </div>
-                   </div>
-
-                   <!-- Aguante -->
-                   <div class="form-group-num">
-                       <label for="current-stamina">Aguante: Actual / Máximo</label>
-                       <div class="health-controls">
-                           <input type="number" id="current-stamina" class="health-input" value="100" required>
-                           <span>/</span>
-                           <input type="number" id="max-stamina" class="health-input" value="100" required>
-                           <button aria-label="Reducir aguante en 10" onclick="modifyResource('stamina', -10)">-10</button>
-                           <button aria-label="Reducir aguante en 5" onclick="modifyResource('stamina', -5)">-5</button>
-                           <button aria-label="Reducir aguante en 1" onclick="modifyResource('stamina', -1)">-1</button>
-                           <button aria-label="Aumentar aguante en 1" onclick="modifyResource('stamina', 1)">+1</button>
-                           <button aria-label="Aumentar aguante en 5" onclick="modifyResource('stamina', 5)">+5</button>
-                           <button aria-label="Aumentar aguante en 10" onclick="modifyResource('stamina', 10)">+10</button>
-                           <button aria-label="Restaurar aguante al máximo" onclick="restoreResourceToMax('stamina')">Restaurar</button>
-                       </div>
-                       <div class="progress-bar">
-                           <div class="progress-bar-fill" id="stamina-bar" style="width: 100%"></div>
-                       </div>
-                   </div>
-
-                   <!-- Maná -->
-                   <div class="form-group-num">
-                       <label for="current-mana">Maná: Actual / Máximo</label>
-                       <div class="health-controls">
-                           <input type="number" id="current-mana" class="health-input" value="50" required>
-                           <span>/</span>
-                           <input type="number" id="max-mana" class="health-input" value="50" required>
-                           <button aria-label="Reducir maná en 10" onclick="modifyResource('mana', -10)">-10</button>
-                           <button aria-label="Reducir maná en 5" onclick="modifyResource('mana', -5)">-5</button>
-                           <button aria-label="Reducir maná en 1" onclick="modifyResource('mana', -1)">-1</button>
-                           <button aria-label="Aumentar maná en 1" onclick="modifyResource('mana', 1)">+1</button>
-                           <button aria-label="Aumentar maná en 5" onclick="modifyResource('mana', 5)">+5</button>
-                           <button aria-label="Aumentar maná en 10" onclick="modifyResource('mana', 10)">+10</button>
-                           <button aria-label="Restaurar maná al máximo" onclick="restoreResourceToMax('mana')">Restaurar</button>
-                       </div>
-                       <div class="progress-bar">
-                           <div class="progress-bar-fill" id="mana-bar" style="width: 100%"></div>
-                       </div>
-                   </div>
-
-                   <!-- Armadura Equipada -->
-                   <div class="armor-section">
-                       <h3>Armadura Equipada</h3>
-                       <div class="grid armor-stats">
-                           <div class="form-group-num">
-                               <label for="armor-resistance">Armadura:</label>
-                               <input type="number" id="armor-resistance" min="0" value="0" required>
-                           </div>
-                           <div class="form-group-num">
-                               <label for="armor-block">Bloqueo:</label>
-                               <input type="number" id="armor-block" min="0" value="0" required>
-                           </div>
-                           <div class="form-group-num">
-                               <label for="armor-magic">Magia:</label>
-                               <input type="number" id="armor-magic" min="0" value="0" required>
-                           </div>
-                           <div class="form-group-num">
-                               <label for="armor-extra">Extra:</label>
-                               <input type="number" id="armor-extra" min="0" value="0" required>
-                           </div>
-                       </div>
-                       <div class="form-group-num">
-                           <label for="current-armor">Resistencia Actual:</label>
-                           <input type="number" id="current-armor" class="health-input" value="0" required>
-                           <div class="progress-bar">
-                               <div class="progress-bar-fill" id="armor-bar" style="width: 0%"></div>
-                           </div>
-                       </div>
-                   </div>
-               </div>
-           </section>
-
         <!-- Gestión de Personajes -->
         <section class="section">
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <h2 class="section-title">Gestión de Personajes</h2>
                 <button aria-label="Mostrar u ocultar gestión de personajes" onclick="toggleSection('character-management-content', this)">Mostrar</button>
             </div>
-            <div id="character-management-content">
+            <div id="character-management-content" style="display: none;">
                 <div class="save-load-section">
                     <button aria-label="Nuevo personaje" onclick="createNewCharacter()">Nuevo PJ</button>
                     <button aria-label="Guardar personaje actual" onclick="saveCharacter()">Guardar PJ</button>
@@ -1597,6 +1598,17 @@
                button.textContent = 'Mostrar Lista PJ';
            }
        }
+
+       // Add initialization code to ensure buttons show correct initial text
+       document.addEventListener('DOMContentLoaded', function() {
+           // Get all section toggle buttons
+           const buttons = document.querySelectorAll('[onclick*="toggleSection"]');
+           
+           // Set initial text for each button
+           buttons.forEach(button => {
+               button.textContent = 'Mostrar';
+           });
+       });
    </script>
 </body>
 </html>
