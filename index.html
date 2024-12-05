@@ -1,0 +1,1602 @@
+<html><head><base href="">
+    <!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestor del PJ</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #3498db;
+            --text-color: #ecf0f1;
+            --border-color: #7f8c8d;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section {
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            margin: 0;
+            flex-grow: 1;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #444;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background-color: var(--accent-color);
+            transition: width 0.3s ease;
+       }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group, .form-group-num {
+            margin-bottom: 10px;
+        }
+
+        .form-group label, .form-group-num label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group select, .form-group-num input, .form-group-num select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--primary-color);
+            color: var(--text-color);
+        }
+
+        .health-input, .money-controls input, .lockpick-controls input {
+            width: 60px !important;
+            text-align: center;
+        }
+
+        .form-group-num input {
+            min-width: 80px;
+            text-align: center;
+        }
+
+        .equipment-slot {
+            background-color: var(--primary-color);
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            min-width: 200px;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: var(--text-color);
+            border: none;
+            padding: 10px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .health-controls, .money-controls, .lockpick-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .character-list {
+            margin-top: 20px;
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .character-card {
+            background-color: var(--primary-color);
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .save-load-section {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .armor-section {
+            margin-top: 20px;
+        }
+
+        .armor-stats {
+            margin-bottom: 15px;
+        }
+
+        .skill-category {
+            margin-bottom: 20px;
+        }
+
+        .skill-category h3 {
+            color: var(--accent-color);
+            margin-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        .item-form {
+            background-color: var(--secondary-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .inventory-section {
+            margin-top: 20px;
+        }
+
+        .equipped-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .inventory-item {
+            background-color: var(--primary-color);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .equipped-tag {
+            background-color: var(--accent-color);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        #general-skills-content {
+            margin-top: 15px;
+        }
+
+        .section > div:first-child {
+            margin-bottom: 15px;
+        }
+
+        #basic-info-content,
+        #combat-skills-content,
+        #inventory-resources-content,
+        #resources-content,
+        #general-skills-content {
+            display: block;
+        }
+
+        /* Add style for the progress bar labels/values */
+        .progress-bar-label {
+            min-width: 80px;
+            display: inline-block;
+        }
+
+        /* Update armor stats inputs */
+        .armor-stats input {
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* Ensure inventory item quantities have space */
+        .inventory-item strong {
+            margin-right: 10px;
+        }
+
+        .inventory-item .quantity {
+            min-width: 60px;
+            display: inline-block;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Información Básica -->
+        <section class="section" id="basic-info">
+           <div style="display: flex; justify-content: space-between; align-items: center;">
+               <h2 class="section-title">Información Básica</h2>
+               <button aria-label="Mostrar u ocultar información básica" onclick="toggleSection('basic-info-content', this)">Mostrar</button>
+           </div>
+           <div id="basic-info-content">
+               <div class="grid">
+                    <div class="form-group">
+                        <label for="character-name">Nombre:</label>
+                        <input type="text" id="character-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="character-race">Raza:</label>
+                        <input type="text" id="character-race" required>
+                    </div>
+                    <div class="form-group-num">
+                        <label for="character-level">Nivel:</label>
+                        <input type="number" id="character-level" min="1" required>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Habilidades de Lucha -->
+        <section class="section" id="combat-skills">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="section-title">Habilidades de Lucha</h2>
+                <button aria-label="Mostrar u ocultar habilidades de lucha" onclick="toggleSection('combat-skills-content', this)">Mostrar</button>
+            </div>
+            <div id="combat-skills-content">
+                <div class="grid">
+                    <div class="form-group-num">
+                        <label for="melee-skill">Hab. Combate:</label>
+                        <input type="number" id="melee-skill" min="0" max="100" required>
+                    </div>
+                    <div class="form-group-num">
+                        <label for="ranged-skill">Disparos:</label>
+                        <input type="number" id="ranged-skill" min="0" max="100" required>
+                    </div>
+                    <div class="form-group-num">
+                        <label for="magic-skill">Hechizos:</label>
+                        <input type="number" id="magic-skill" min="0" max="100" required>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Inventario Básico -->
+        <section class="section" id="inventory-resources">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="section-title">Inventario Básico</h2>
+                <button aria-label="Mostrar u ocultar inventario básico" onclick="toggleSection('inventory-resources-content', this)">Mostrar</button>
+            </div>
+            <div id="inventory-resources-content">
+                <div class="grid">
+                    <!-- Monedero -->
+                    <div class="form-group-num">
+                        <label for="character-gold">Oro:</label>
+                        <div class="money-controls">
+                            <input type="number" id="character-gold" min="0" value="0" required>
+                            <button aria-label="Reducir oro en 10" onclick="modifyGold(-10)">-10</button>
+                            <button aria-label="Aumentar oro en 10" onclick="modifyGold(10)">+10</button>
+                        </div>
+                    </div>
+                    
+                    <!-- Ganzúas -->
+                    <div class="form-group-num">
+                        <label for="character-lockpicks">Ganzúas:</label>
+                        <div class="lockpick-controls">
+                            <input type="number" id="character-lockpicks" min="0" value="0" required>
+                            <button aria-label="Reducir ganzúas en 5" onclick="modifyLockpicks(-5)">-5</button>
+                            <button aria-label="Aumentar ganzúas en 5" onclick="modifyLockpicks(5)">+5</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="inventory-controls">
+                    <button aria-label="Agregar objeto" onclick="showAddItemForm()">Agregar Objeto</button>
+                    <button aria-label="Ver u ocultar inventario" onclick="toggleInventoryView()">Ver/Ocultar Inventario</button>
+                </div>
+              
+                <!-- Inventory list -->
+                <div id="inventory-list" class="inventory-section">
+                    <h3>Inventario</h3>
+                    <div id="inventory-items"></div>
+                </div>
+
+                <!-- Form for adding items -->
+                <div id="add-item-form" class="item-form" style="display: none;">
+                    <h3>Agregar Nuevo Objeto</h3>
+                    <div class="form-group">
+                           <label for="item-type">Tipo de Objeto:</label>
+                           <select id="item-type" onchange="showItemFields()">
+                               <option value="">Seleccionar tipo...</option>
+                               <option value="armor">Armadura</option>
+                               <option value="weapon">Arma</option>
+                               <option value="consumable">Consumible</option>
+                               <option value="penalty">Penalizaciones</option>
+                               <option value="misc">Varios</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Dynamic fields will be inserted here -->
+                        <div id="item-fields"></div>
+                    </div>
+    
+                    <!-- Equipped items section -->
+                    <div id="equipped-items" class="inventory-section">
+                        <h3>Equipado</h3>
+                        <div class="equipped-slots">
+                            <div id="head-slot" class="equipment-slot">
+
+                              Cabeza: -
+                          </div>
+                          <div id="torso-slot" class="equipment-slot">
+                              Tórax: -
+                          </div>
+                          <div id="body-slot" class="equipment-slot">
+                              Cuerpo: -
+                          </div>
+                          <div id="legs-slot" class="equipment-slot">
+                               Piernas: -
+                           </div>
+                           <div id="hands-slot" class="equipment-slot">
+                               Manos: -
+                           </div>
+                           <div id="feet-slot" class="equipment-slot">
+                               Pies: -
+                           </div>
+                           <div id="weapon-slot" class="equipment-slot">
+                               Arma: -
+                           </div>
+                       </div>
+                   </div>
+               </div>
+           </section>
+
+           <!-- Habilidades Generales -->
+           <section class="section" id="general-skills">
+               <div style="display: flex; justify-content: space-between; align-items: center;">
+                   <h2 class="section-title">Habilidades Generales</h2>
+                   <button aria-label="Mostrar u ocultar habilidades generales" onclick="toggleGeneralSkills()">Mostrar</button>
+               </div>
+               
+               <div id="general-skills-content">
+                   <!-- Percepción -->
+                   <div class="skill-category">
+                       <h3>Percepción</h3>
+                       <div class="grid">
+                           <div class="form-group-num">
+                               <label for="skill-buscar">Buscar:</label>
+                               <input type="number" id="skill-buscar" min="0" max="100" value="0" required>
+                           </div>
+                           <div class="form-group-num">
+                               <label for="skill-sigilo">Sigilo:</label>
+                               <input type="number" id="skill-sigilo" min="0" max="100" value="0" required>
+                           </div>
+                           <div class="form-group-num">
+                               <label for="skill-observar">Observar:</label>
+                               <input type="number" id="skill-observar" min="0" max="100" value="0" required>
+                           </div>
+                      </div>
+                  </div>
+        
+                  <!-- Destreza -->
+                  <div class="skill-category">
+                      <h3>Destreza</h3>
+                      <div class="grid">
+                           <div class="form-group-num">
+                               <label for="skill-cerradura">Cerradura:</label>
+                               <input type="number" id="skill-cerradura" min="0" max="100" value="0" required>
+                           </div>
+                           <div class="form-group-num">
+                               <label for="skill-trampas">Trampas:</label>
+                               <input type="number" id="skill-trampas" min="0" max="100" value="0" required>
+                           </div>
+                           <div class="form-group-num">
+                               <label for="skill-manipular">Manipular:</label>
+                               <input type="number" id="skill-manipular" min="0" max="100" value="0" required>
+                           </div>
+                       </div>
+                   </div>
+
+                   <!-- Agilidad -->
+                   <div class="skill-category">
+                       <h3>Agilidad</h3>
+                       <div class="grid">
+                           <div class="form-group-num">
+                               <label for="skill-acrobacia">Acrobacia:</label>
+                               <input type="number" id="skill-acrobacia" min="0" max="100" value="0" required>
+                           </div>
+                           <div class="form-group-num">
+                               <label for="skill-desarmar">Desarmar:</label>
+                               <input type="number" id="skill-desarmar" min="0" max="100" value="0" required>
+                           </div>
+                           <div class="form-group-num">
+                               <label for="skill-equitacion">Equitación:</label>
+                               <input type="number" id="skill-equitacion" min="0" max="100" value="0" required>
+                           </div>
+                       </div>
+                   </div>
+
+                   <!-- Inteligencia -->
+                   <div class="skill-category">
+                       <h3>Inteligencia</h3>
+                       <div class="grid">
+                           <div class="form-group-num">
+                               <label for="skill-elocuencia">Elocuencia:</label>
+                               <input type="number" id="skill-elocuencia" min="0" max="100" value="0" required>
+                           </div>
+                           <div class="form-group-num">
+                               <label for="skill-resolver">Resolver:</label>
+                               <input type="number" id="skill-resolver" min="0" max="100" value="0" required>
+                           </div>
+                       </div>
+                   </div>
+               </div>
+           </section>
+
+           <!-- Recursos -->
+           <section class="section" id="resources">
+               <div style="display: flex; justify-content: space-between; align-items: center;">
+                   <h2 class="section-title">Recursos</h2>
+                   <button aria-label="Mostrar u ocultar recursos" onclick="toggleSection('resources-content', this)">Mostrar</button>
+               </div>
+               <div id="resources-content">
+                   <!-- Vida -->
+                   <div class="form-group-num">
+                       <label for="current-health">Vida: Actual / Máxima</label>
+                       <div class="health-controls">
+                           <input type="number" id="current-health" class="health-input" value="10" required>
+                           <span>/</span>
+                           <input type="number" id="max-health" class="health-input" value="10" required>
+                           <button aria-label="Reducir vida en 10" onclick="modifyHealth(-10)">-10</button>
+                           <button aria-label="Reducir vida en 5" onclick="modifyHealth(-5)">-5</button>
+                           <button aria-label="Reducir vida en 1" onclick="modifyHealth(-1)">-1</button>
+                           <button aria-label="Aumentar vida en 1" onclick="modifyHealth(1)">+1</button>
+                           <button aria-label="Aumentar vida en 5" onclick="modifyHealth(5)">+5</button>
+                           <button aria-label="Aumentar vida en 10" onclick="modifyHealth(10)">+10</button>
+                           <button aria-label="Curar vida al máximo" onclick="healToFull()">Curar</button>
+                       </div>
+                       <div class="progress-bar">
+                           <div class="progress-bar-fill" id="health-bar" style="width: 100%"></div>
+                       </div>
+                   </div>
+
+                   <!-- Aguante -->
+                   <div class="form-group-num">
+                       <label for="current-stamina">Aguante: Actual / Máximo</label>
+                       <div class="health-controls">
+                           <input type="number" id="current-stamina" class="health-input" value="100" required>
+                           <span>/</span>
+                           <input type="number" id="max-stamina" class="health-input" value="100" required>
+                           <button aria-label="Reducir aguante en 10" onclick="modifyResource('stamina', -10)">-10</button>
+                           <button aria-label="Reducir aguante en 5" onclick="modifyResource('stamina', -5)">-5</button>
+                           <button aria-label="Reducir aguante en 1" onclick="modifyResource('stamina', -1)">-1</button>
+                           <button aria-label="Aumentar aguante en 1" onclick="modifyResource('stamina', 1)">+1</button>
+                           <button aria-label="Aumentar aguante en 5" onclick="modifyResource('stamina', 5)">+5</button>
+                           <button aria-label="Aumentar aguante en 10" onclick="modifyResource('stamina', 10)">+10</button>
+                           <button aria-label="Restaurar aguante al máximo" onclick="restoreResourceToMax('stamina')">Restaurar</button>
+                       </div>
+                       <div class="progress-bar">
+                           <div class="progress-bar-fill" id="stamina-bar" style="width: 100%"></div>
+                       </div>
+                   </div>
+
+                   <!-- Maná -->
+                   <div class="form-group-num">
+                       <label for="current-mana">Maná: Actual / Máximo</label>
+                       <div class="health-controls">
+                           <input type="number" id="current-mana" class="health-input" value="50" required>
+                           <span>/</span>
+                           <input type="number" id="max-mana" class="health-input" value="50" required>
+                           <button aria-label="Reducir maná en 10" onclick="modifyResource('mana', -10)">-10</button>
+                           <button aria-label="Reducir maná en 5" onclick="modifyResource('mana', -5)">-5</button>
+                           <button aria-label="Reducir maná en 1" onclick="modifyResource('mana', -1)">-1</button>
+                           <button aria-label="Aumentar maná en 1" onclick="modifyResource('mana', 1)">+1</button>
+                           <button aria-label="Aumentar maná en 5" onclick="modifyResource('mana', 5)">+5</button>
+                           <button aria-label="Aumentar maná en 10" onclick="modifyResource('mana', 10)">+10</button>
+                           <button aria-label="Restaurar maná al máximo" onclick="restoreResourceToMax('mana')">Restaurar</button>
+                       </div>
+                       <div class="progress-bar">
+                           <div class="progress-bar-fill" id="mana-bar" style="width: 100%"></div>
+                       </div>
+                   </div>
+
+                   <!-- Armadura Equipada -->
+                   <div class="armor-section">
+                       <h3>Armadura Equipada</h3>
+                       <div class="grid armor-stats">
+                           <div class="form-group-num">
+                               <label for="armor-resistance">Armadura:</label>
+                               <input type="number" id="armor-resistance" min="0" value="0" required>
+                           </div>
+                           <div class="form-group-num">
+                               <label for="armor-block">Bloqueo:</label>
+                               <input type="number" id="armor-block" min="0" value="0" required>
+                           </div>
+                           <div class="form-group-num">
+                               <label for="armor-magic">Magia:</label>
+                               <input type="number" id="armor-magic" min="0" value="0" required>
+                           </div>
+                           <div class="form-group-num">
+                               <label for="armor-extra">Extra:</label>
+                               <input type="number" id="armor-extra" min="0" value="0" required>
+                           </div>
+                       </div>
+                       <div class="form-group-num">
+                           <label for="current-armor">Resistencia Actual:</label>
+                           <input type="number" id="current-armor" class="health-input" value="0" required>
+                           <div class="progress-bar">
+                               <div class="progress-bar-fill" id="armor-bar" style="width: 0%"></div>
+                           </div>
+                       </div>
+                   </div>
+               </div>
+           </section>
+
+        <!-- Gestión de Personajes -->
+        <section class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2 class="section-title">Gestión de Personajes</h2>
+                <button aria-label="Mostrar u ocultar gestión de personajes" onclick="toggleSection('character-management-content', this)">Mostrar</button>
+            </div>
+            <div id="character-management-content">
+                <div class="save-load-section">
+                    <button aria-label="Nuevo personaje" onclick="createNewCharacter()">Nuevo PJ</button>
+                    <button aria-label="Guardar personaje actual" onclick="saveCharacter()">Guardar PJ</button>
+                    <button aria-label="Borrar todos los personajes" onclick="deleteAllCharacters()">Borrar Todos</button>
+                    <button aria-label="Mostrar u ocultar lista de personajes" onclick="toggleCharacterList()">Ver Lista PJ</button>
+                </div>
+                <div id="character-list" class="character-list" style="display: block;">
+                    <!-- Los personajes se listarán aquí -->
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Inicialización del almacenamiento local
+        if (!localStorage.getItem('rpgCharacters')) {
+            localStorage.setItem('rpgCharacters', JSON.stringify([]));
+        }
+
+        let equippedItems = {
+            head: null,
+            torso: null,
+            body: null,
+            legs: null,
+            hands: null,
+            feet: null
+        };
+
+        let weaponSlots = {
+            mainHand: null,
+            offHand: null
+        };
+
+        let inventory = [];
+
+        // Función para crear un nuevo personaje
+        function createNewCharacter() {
+            // Reset basic info
+            document.getElementById('character-name').value = '';
+            document.getElementById('character-race').value = '';
+            document.getElementById('character-level').value = '1';
+            
+            // Reset combat skills
+            document.getElementById('melee-skill').value = '0';
+            document.getElementById('ranged-skill').value = '0';
+            document.getElementById('magic-skill').value = '0';
+            
+            // Reset resources
+            document.getElementById('character-gold').value = '0';
+            document.getElementById('character-lockpicks').value = '0';
+            document.getElementById('current-health').value = '10';
+            document.getElementById('max-health').value = '10';
+            document.getElementById('current-stamina').value = '100';
+            document.getElementById('max-stamina').value = '100';
+            document.getElementById('current-mana').value = '50';
+            document.getElementById('max-mana').value = '50';
+            
+            // Reset armor stats
+            document.getElementById('armor-resistance').value = '0';
+            document.getElementById('armor-block').value = '0';
+            document.getElementById('armor-magic').value = '0';
+            document.getElementById('armor-extra').value = '0';
+            document.getElementById('current-armor').value = '0';
+            
+            // Reset general skills
+            document.getElementById('skill-buscar').value = '0';
+            document.getElementById('skill-sigilo').value = '0';
+            document.getElementById('skill-observar').value = '0';
+            document.getElementById('skill-cerradura').value = '0';
+            document.getElementById('skill-trampas').value = '0';
+            document.getElementById('skill-manipular').value = '0';
+            document.getElementById('skill-acrobacia').value = '0';
+            document.getElementById('skill-desarmar').value = '0';
+            document.getElementById('skill-equitacion').value = '0';
+            document.getElementById('skill-elocuencia').value = '0';
+            document.getElementById('skill-resolver').value = '0';
+            
+            // Clear inventory and equipped items
+            inventory = [];
+            equippedItems = {
+                head: null,
+                torso: null,
+                body: null,
+                legs: null,
+                hands: null,
+                feet: null
+            };
+            weaponSlots = {
+                mainHand: null,
+                offHand: null
+            };
+            
+            // Update displays
+            updateInventoryDisplay();
+            updateEquippedDisplay();
+            updateHealthBar();
+            updateResourceBar('stamina');
+            updateResourceBar('mana');
+            updateArmorBar();
+            
+            // Update save button text
+            updateSaveButtonText();
+            
+            // Show success message
+            alert('Nuevo personaje creado. Todos los campos han sido restaurados.');
+        }
+
+        // Función para modificar la vida
+        function modifyHealth(amount) {
+            const currentHealth = parseInt(document.getElementById('current-health').value);
+            const maxHealth = parseInt(document.getElementById('max-health').value);
+            let newHealth = currentHealth + amount;
+            
+            // Asegurar que la vida no baje de 0 ni supere el máximo
+            newHealth = Math.max(0, Math.min(newHealth, maxHealth));
+            
+            document.getElementById('current-health').value = newHealth;
+            updateHealthBar();
+        }
+
+        // Función para curar completamente
+        function healToFull() {
+            const maxHealth = parseInt(document.getElementById('max-health').value);
+            document.getElementById('current-health').value = maxHealth;
+            updateHealthBar();
+        }
+
+        // Función para actualizar la barra de vida
+        function updateHealthBar() {
+            const currentHealth = parseInt(document.getElementById('current-health').value);
+           const maxHealth = parseInt(document.getElementById('max-health').value);
+           const percentage = (currentHealth / maxHealth) * 100;
+           document.getElementById('health-bar').style.width = percentage + '%';
+       }
+
+       // Función para modificar recursos
+       function modifyResource(type, amount) {
+           const currentElement = document.getElementById(`current-${type}`);
+            const maxElement = document.getElementById(`max-${type}`);
+            const current = parseInt(currentElement.value);
+            const max = parseInt(maxElement.value);
+            let newValue = current + amount;
+            
+            // Asegurar que el valor no baje de 0 ni supere el máximo
+            newValue = Math.max(0, Math.min(newValue, max));
+            
+            currentElement.value = newValue;
+            updateResourceBar(type);
+        }
+
+        function restoreResourceToMax(type) {
+            const maxValue = parseInt(document.getElementById(`max-${type}`).value);
+            document.getElementById(`current-${type}`).value = maxValue;
+            updateResourceBar(type);
+        }
+
+        function updateResourceBar(type) {
+            const current = parseInt(document.getElementById(`current-${type}`).value);
+            const max = parseInt(document.getElementById(`max-${type}`).value);
+            const percentage = (current / max) * 100;
+            document.getElementById(`${type}-bar`).style.width = `${percentage}%`;
+        }
+
+        // Función para modificar el oro
+        function modifyGold(amount) {
+            const goldElement = document.getElementById('character-gold');
+            let currentGold = parseInt(goldElement.value) || 0;
+            let newGold = currentGold + amount;
+            
+            // Asegurar que el oro no baje de 0
+            newGold = Math.max(0, newGold);
+            
+            goldElement.value = newGold;
+        }
+
+        // Función para modificar las ganzúas
+        function modifyLockpicks(amount) {
+            const lockpicksElement = document.getElementById('character-lockpicks');
+            let currentLockpicks = parseInt(lockpicksElement.value) || 0;
+            let newLockpicks = currentLockpicks + amount;
+            
+            // Asegurar que las ganzúas no bajen de 0
+            newLockpicks = Math.max(0, newLockpicks);
+            
+            lockpicksElement.value = newLockpicks;
+        }
+
+        // Eventos para actualizar la barra de vida cuando se modifican los valores
+        document.getElementById('current-health').addEventListener('change', updateHealthBar);
+        document.getElementById('max-health').addEventListener('change', updateHealthBar);
+
+        // Eventos para los nuevos recursos
+        ['stamina', 'mana'].forEach(type => {
+            document.getElementById(`current-${type}`).addEventListener('change', () => updateResourceBar(type));
+            document.getElementById(`max-${type}`).addEventListener('change', () => updateResourceBar(type));
+        });
+
+        // Function to add event listeners to all armor stat inputs
+        function addArmorStatListeners() {
+            const armorInputs = [
+                'armor-resistance',
+                'armor-block',
+                'armor-magic',
+                'armor-extra',
+                'current-armor'
+            ];
+
+            armorInputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', updateArmorBar);
+            });
+        }
+
+        // Function to modify the updateArmorBar function to be more precise
+        function updateArmorBar() {
+            const currentArmor = parseInt(document.getElementById('current-armor').value) || 0;
+            const resistance = parseInt(document.getElementById('armor-resistance').value) || 0;
+
+            // Prevent division by zero and handle edge cases
+            let percentage = 0;
+            if (resistance > 0) {
+                percentage = Math.min((currentArmor / resistance) * 100, 100);
+            }
+
+            // Update the visual bar
+            document.getElementById('armor-bar').style.width = `${percentage}%`;
+        }
+
+        // Updated armor stats function
+        function updateArmorStats() {
+            let totalResistance = 0;
+            let totalBlock = 0;
+            let totalMagic = 0;
+            let totalExtra = 0;
+            let totalCurrentResistance = 0;
+
+            // Calculate totals from equipped armor pieces
+            Object.values(equippedItems).forEach(item => {
+                if (item && item.type === 'armor') {
+                    totalResistance += item.resistance || 0;
+                    totalBlock += item.block || 0;
+                    totalMagic += item.magic || 0;
+                    totalExtra += item.extra || 0;
+                    totalCurrentResistance += item.currentResistance || 0;
+                }
+            });
+
+            // Update all the armor stat fields
+            document.getElementById('armor-resistance').value = totalResistance;
+            document.getElementById('armor-block').value = totalBlock;
+            document.getElementById('armor-magic').value = totalMagic;
+            document.getElementById('armor-extra').value = totalExtra;
+            document.getElementById('current-armor').value = totalCurrentResistance;
+
+            // Update the armor bar
+            updateArmorBar();
+        }
+
+        // Modify updateArmorStats to ensure bar updates
+        function updateArmorStats() {
+            let totalResistance = 0;
+            let totalBlock = 0;
+            let totalMagic = 0;
+            let totalExtra = 0;
+            let totalCurrentResistance = 0;
+
+            // Calculate totals from equipped armor pieces
+            Object.values(equippedItems).forEach(item => {
+                if (item && item.type === 'armor') {
+                    totalResistance += item.resistance || 0;
+                    totalBlock += item.block || 0;
+                    totalMagic += item.magic || 0;
+                    totalExtra += item.extra || 0;
+                    totalCurrentResistance += item.currentResistance || 0;
+                }
+            });
+
+            // Update all the armor stat fields
+            document.getElementById('armor-resistance').value = totalResistance;
+            document.getElementById('armor-block').value = totalBlock;
+            document.getElementById('armor-magic').value = totalMagic;
+            document.getElementById('armor-extra').value = totalExtra;
+            document.getElementById('current-armor').value = totalCurrentResistance;
+
+            // Update the armor bar
+            updateArmorBar();
+        }
+
+        // Add this to initialize the listeners when the page loads
+        document.addEventListener('DOMContentLoaded', addArmorStatListeners);
+
+        // Función para guardar el personaje actual
+        function findCharacterByName(name) {
+            const characters = JSON.parse(localStorage.getItem('rpgCharacters'));
+            return characters.findIndex(char => char.name === name);
+        }
+
+        function saveCharacter() {
+            const characterName = document.getElementById('character-name').value || 'Sin nombre';
+            const characters = JSON.parse(localStorage.getItem('rpgCharacters'));
+            const existingIndex = findCharacterByName(characterName);
+
+            // Create character object with all data
+            const character = {
+                name: characterName,
+                race: document.getElementById('character-race').value || 'Sin raza',
+                level: document.getElementById('character-level').value || 1,
+                currentHealth: document.getElementById('current-health').value,
+                maxHealth: document.getElementById('max-health').value,
+                combatSkills: {
+                    melee: document.getElementById('melee-skill').value || 0,
+                    ranged: document.getElementById('ranged-skill').value || 0,
+                    magic: document.getElementById('magic-skill').value || 0
+                },
+               inventory: {
+                   gold: document.getElementById('character-gold').value || 0,
+                   lockpicks: document.getElementById('character-lockpicks').value || 0,
+                   items: inventory, // Add the complete inventory array
+                   equippedItems: equippedItems, // Add equipped items
+                   weaponSlots: weaponSlots // Add weapon slots
+               },
+               resources: {
+                   currentStamina: document.getElementById('current-stamina').value,
+                   maxStamina: document.getElementById('max-stamina').value,
+                   currentMana: document.getElementById('current-mana').value,
+                   maxMana: document.getElementById('max-mana').value,
+               },
+               armor: {
+                   resistance: document.getElementById('armor-resistance').value,
+                   block: document.getElementById('armor-block').value,
+                   magic: document.getElementById('armor-magic').value,
+                   extra: document.getElementById('armor-extra').value,
+                   current: document.getElementById('current-armor').value
+               },
+               generalSkills: {
+                   percepcion: {
+                       buscar: document.getElementById('skill-buscar').value || 0,
+                       sigilo: document.getElementById('skill-sigilo').value || 0,
+                       observar: document.getElementById('skill-observar').value || 0
+                   },
+                   destreza: {
+                       cerradura: document.getElementById('skill-cerradura').value || 0,
+                       trampas: document.getElementById('skill-trampas').value || 0,
+                       manipular: document.getElementById('skill-manipular').value || 0
+                   },
+                   agilidad: {
+                       acrobacia: document.getElementById('skill-acrobacia').value || 0,
+                       desarmar: document.getElementById('skill-desarmar').value || 0,
+                       equitacion: document.getElementById('skill-equitacion').value || 0
+                   },
+                   inteligencia: {
+                       elocuencia: document.getElementById('skill-elocuencia').value || 0,
+                       resolver: document.getElementById('skill-resolver').value || 0
+                   }
+               },
+               savedAt: new Date().toLocaleString()
+           };
+           if (existingIndex !== -1) {
+               // Character exists - ask for confirmation to update
+               if (confirm(`¿Deseas actualizar el personaje "${characterName}"?`)) {
+                   characters[existingIndex] = character;
+                   localStorage.setItem('rpgCharacters', JSON.stringify(characters));
+                   alert('Personaje actualizado correctamente');
+               }
+           } else {
+               // New character - save it
+               characters.push(character);
+               localStorage.setItem('rpgCharacters', JSON.stringify(characters));
+               alert('Personaje guardado correctamente');
+           }
+           
+           updateCharacterList();
+           updateSaveButtonText();
+       }
+       // Add new function to update save button text
+       function updateSaveButtonText() {
+           const characterName = document.getElementById('character-name').value || 'Sin nombre';
+           const existingIndex = findCharacterByName(characterName);
+           const saveButton = document.querySelector('.save-load-section button:nth-child(2)'); // Select the second button
+           
+           if (existingIndex !== -1) {
+               saveButton.textContent = 'Actualizar PJ';
+           } else {
+               saveButton.textContent = 'Guardar PJ';
+           }
+       }
+       // Add event listener to character name input to update button text
+       document.getElementById('character-name').addEventListener('input', updateSaveButtonText);
+       // Función para cargar un personaje
+       function loadCharacter(index) {
+           const characters = JSON.parse(localStorage.getItem('rpgCharacters'));
+           const character = characters[index];
+           // Basic info
+           document.getElementById('character-name').value = character.name || '';
+           document.getElementById('character-race').value = character.race || '';
+           document.getElementById('character-level').value = character.level || 1;
+           document.getElementById('current-health').value = character.currentHealth || 10;
+           document.getElementById('max-health').value = character.maxHealth || 10;
+           
+           // Combat skills
+           if (character.combatSkills) {
+               document.getElementById('melee-skill').value = character.combatSkills.melee || 0;
+               document.getElementById('ranged-skill').value = character.combatSkills.ranged || 0;
+                document.getElementById('magic-skill').value = character.combatSkills.magic || 0;
+            }
+            
+            // Inventory
+            if (character.inventory) {
+                document.getElementById('character-gold').value = character.inventory.gold || 0;
+                document.getElementById('character-lockpicks').value = character.inventory.lockpicks || 0;
+                
+                // Load inventory items
+                if (character.inventory.items) {
+                    inventory = character.inventory.items;
+                }
+                
+                // Load equipped items
+                if (character.inventory.equippedItems) {
+                    equippedItems = character.inventory.equippedItems;
+                }
+                
+                // Load weapon slots
+                if (character.inventory.weaponSlots) {
+                    weaponSlots = character.inventory.weaponSlots;
+                }
+                
+                // Update displays
+                updateInventoryDisplay();
+                updateEquippedDisplay();
+            }
+            
+            // Resources
+            if (character.resources) {
+                document.getElementById('current-stamina').value = character.resources.currentStamina || 100;
+                document.getElementById('max-stamina').value = character.resources.maxStamina || 100;
+                document.getElementById('current-mana').value = character.resources.currentMana || 50;
+                document.getElementById('max-mana').value = character.resources.maxMana || 50;
+            }
+            
+            // Armor
+            if (character.armor) {
+                document.getElementById('armor-resistance').value = character.armor.resistance || 0;
+                document.getElementById('armor-block').value = character.armor.block || 0;
+                document.getElementById('armor-magic').value = character.armor.magic || 0;
+                document.getElementById('armor-extra').value = character.armor.extra || 0;
+                document.getElementById('current-armor').value = character.armor.current || 0;
+            }
+            
+            // General skills
+            if (character.generalSkills) {
+                if (character.generalSkills.percepcion) {
+                    document.getElementById('skill-buscar').value = character.generalSkills.percepcion.buscar || 0;
+                    document.getElementById('skill-sigilo').value = character.generalSkills.percepcion.sigilo || 0;
+                    document.getElementById('skill-observar').value = character.generalSkills.percepcion.observar || 0;
+                }
+                
+                if (character.generalSkills.destreza) {
+                    document.getElementById('skill-cerradura').value = character.generalSkills.destreza.cerradura || 0;
+                    document.getElementById('skill-trampas').value = character.generalSkills.destreza.trampas || 0;
+                    document.getElementById('skill-manipular').value = character.generalSkills.destreza.manipular || 0;
+                }
+                
+                if (character.generalSkills.agilidad) {
+                    document.getElementById('skill-acrobacia').value = character.generalSkills.agilidad.acrobacia || 0;
+                    document.getElementById('skill-desarmar').value = character.generalSkills.agilidad.desarmar || 0;
+                    document.getElementById('skill-equitacion').value = character.generalSkills.agilidad.equitacion || 0;
+                }
+                
+                if (character.generalSkills.inteligencia) {
+                    document.getElementById('skill-elocuencia').value = character.generalSkills.inteligencia.elocuencia || 0;
+                    document.getElementById('skill-resolver').value = character.generalSkills.inteligencia.resolver || 0;
+                }
+            }
+
+            updateHealthBar();
+            updateResourceBar('stamina');
+            updateResourceBar('mana');
+            updateArmorBar();
+            updateSaveButtonText();
+        }
+
+        function deleteCharacter(index) {
+            let characters = JSON.parse(localStorage.getItem('rpgCharacters'));
+            characters.splice(index, 1);
+            localStorage.setItem('rpgCharacters', JSON.stringify(characters));
+            updateCharacterList();
+        }
+
+        function deleteAllCharacters() {
+            if (confirm('¿Estás seguro de que quieres borrar todos los personajes?')) {
+                localStorage.setItem('rpgCharacters', JSON.stringify([]));
+                updateCharacterList();
+            }
+        }
+
+        function updateCharacterList() {
+            const characterList = document.getElementById('character-list');
+            const characters = JSON.parse(localStorage.getItem('rpgCharacters'));
+            
+            characterList.innerHTML = characters.map((char, index) => `
+                <div class="character-card">
+                    <div>
+                        <strong>${char.name}</strong> (Nivel ${char.level} ${char.race})
+                        <br>
+                        <small>Guardado: ${char.savedAt}</small>
+                    </div>
+                    <div>
+                        <button onclick="loadCharacter(${index})">Cargar</button>
+                      <button onclick="deleteCharacter(${index})">Borrar</button>
+                  </div>
+              </div>
+          `).join('');
+      }
+
+      // Inicializar la lista de personajes al cargar la página
+      updateCharacterList();
+       
+       // Update the equipped items display
+       function updateEquippedDisplay() {
+           // Update armor slots
+           document.getElementById('head-slot').textContent = equippedItems.head ? 
+               `Cabeza: ${equippedItems.head.name}` : 'Cabeza: -';
+           document.getElementById('torso-slot').textContent = equippedItems.torso ? 
+               `Tórax: ${equippedItems.torso.name}` : 'Tórax: -';
+           document.getElementById('body-slot').textContent = equippedItems.body ? 
+               `Cuerpo: ${equippedItems.body.name}` : 'Cuerpo: -';
+           document.getElementById('legs-slot').textContent = equippedItems.legs ? 
+               `Piernas: ${equippedItems.legs.name}` : 'Piernas: -';
+           document.getElementById('hands-slot').textContent = equippedItems.hands ? 
+               `Manos: ${equippedItems.hands.name}` : 'Manos: -';
+           document.getElementById('feet-slot').textContent = equippedItems.feet ? 
+               `Pies: ${equippedItems.feet.name}` : 'Pies: -';
+
+           // Update weapon slot
+           let weaponText = 'Arma: ';
+           if (weaponSlots.mainHand && weaponSlots.mainHand.hands === 2) {
+               weaponText += `${weaponSlots.mainHand.name} (2H)`;
+           } else {
+               if (weaponSlots.mainHand) {
+                   weaponText += weaponSlots.mainHand.name;
+                   if (weaponSlots.offHand) {
+                       weaponText += ` + ${weaponSlots.offHand.name}`;
+                   }
+               } else {
+                   weaponText += '-';
+               }
+           }
+           document.getElementById('weapon-slot').textContent = weaponText;
+       }
+
+       // Functions for equipping and unequipping items
+       function equipItem(index) {
+           const item = inventory[index];
+           
+           if (item.type === 'weapon') {
+               if (item.hands === 2) {
+                   // Desequipar armas actuales
+                   if (weaponSlots.mainHand) weaponSlots.mainHand.equipped = false;
+                   if (weaponSlots.offHand) weaponSlots.offHand.equipped = false;
+                   weaponSlots.mainHand = item;
+                   weaponSlots.offHand = null;
+               } else {
+                   // Arma de una mano
+                   if (!weaponSlots.mainHand) {
+                       weaponSlots.mainHand = item;
+                   } else if (!weaponSlots.offHand && weaponSlots.mainHand.hands !== 2) {
+                       weaponSlots.offHand = item;
+                   } else {
+                       alert('No hay slots disponibles para equipar esta arma');
+                       return;
+                   }
+               }
+           } else if (item.type === 'armor') {
+               // Desequipar armadura anterior en ese slot
+               if (equippedItems[item.slot]) {
+                   equippedItems[item.slot].equipped = false;
+               }
+               equippedItems[item.slot] = item;
+               updateArmorStats();
+           }
+
+           item.equipped = true;
+           updateInventoryDisplay();
+           updateEquippedDisplay();
+       }
+
+       function unequipItem(index) {
+           const item = inventory[index];
+           if(item.type === 'weapon') {
+               if(weaponSlots.mainHand === item) weaponSlots.mainHand = null;
+               if(weaponSlots.offHand === item) weaponSlots.offHand = null;
+           } else if(item.type === 'armor') {
+               if(equippedItems[item.slot] === item) {
+                   equippedItems[item.slot] = null;
+               }
+               updateArmorStats();
+           }
+           item.equipped = false;
+           updateInventoryDisplay();
+           updateEquippedDisplay();
+       }
+
+       // Inventory management functions
+       function showAddItemForm() {
+           document.getElementById('add-item-form').style.display = 'block';
+           document.getElementById('item-fields').innerHTML = '';
+            const itemTypeSelect = document.getElementById('item-type');
+            itemTypeSelect.innerHTML = `
+                <option value="">Seleccionar tipo...</option>
+                <option value="armor">Armadura</option>
+                <option value="weapon">Arma</option>
+                <option value="consumable">Consumible</option>
+                <option value="penalty">Penalizaciones</option>
+                <option value="misc">Varios</option>
+            `;
+            itemTypeSelect.value = '';
+        }
+
+        function showItemFields() {
+          const type = document.getElementById('item-type').value;
+          const fieldsContainer = document.getElementById('item-fields');
+          let fields = '';
+
+          // Common fields for all items
+          const commonFields = `
+              <div class="form-group">
+                  <label for="item-name">Nombre:</label>
+                   <input type="text" id="item-name" required>
+               </div>
+               <div class="form-group">
+                   <label for="item-description">Descripción:</label>
+                   <textarea id="item-description"></textarea>
+               </div>
+           `;
+
+           switch(type) {
+               case 'weapon':
+                   fields = `
+                       ${commonFields}
+                       <div class="form-group">
+                           <label for="weapon-hands">Manos:</label>
+                           <select id="weapon-hands">
+                               <option value="1">Una mano</option>
+                               <option value="2">Dos manos</option>
+                           </select>
+                       </div>
+                       <div class="form-group">
+                           <label for="weapon-damage">Daño:</label>
+                           <input type="text" id="weapon-damage" placeholder="ej: 1d6+1">
+                       </div>
+                       <div class="form-group">
+                           <label for="weapon-max-durability">Durabilidad Máxima:</label>
+                           <input type="number" id="weapon-max-durability">
+                       </div>
+                       <div class="form-group">
+                           <label for="weapon-current-durability">Durabilidad Actual:</label>
+                           <input type="number" id="weapon-current-durability">
+                       </div>
+                       <div class="form-group">
+                           <label for="weapon-properties">Propiedades Especiales:</label>
+                           <textarea id="weapon-properties"></textarea>
+                       </div>
+                       <button onclick="saveItem('weapon')">Guardar Arma</button>
+                   `;
+                   break;
+               case 'armor':
+                   fields = `
+                       ${commonFields}
+                       <div class="form-group">
+                           <label for="armor-slot">Tipo:</label>
+                           <select id="armor-slot">
+                               <option value="head">Cabeza</option>
+                               <option value="torso">Torso</option>
+                               <option value="body">Cuerpo (Torso + Piernas)</option>
+                               <option value="legs">Piernas</option>
+                               <option value="hands">Manos</option>
+                               <option value="feet">Pies</option>
+                           </select>
+                       </div>
+                       <div class="form-group">
+                           <label for="armor-resistance">Resistencia Total:</label>
+                           <input type="number" id="armor-resistance" min="0" value="0">
+                       </div>
+                       <div class="form-group">
+                           <label for="armor-block">Bloqueo:</label>
+                           <input type="number" id="armor-block" min="0" value="0">
+                       </div>
+                       <div class="form-group">
+                           <label for="armor-magic">Magia:</label>
+                           <input type="number" id="armor-magic" min="0" value="0">
+                       </div>
+                       <div class="form-group">
+                           <label for="armor-extra">Extra:</label>
+                           <input type="number" id="armor-extra" min="0" value="0">
+                       </div>
+                       <div class="form-group">
+                           <label for="armor-current-resistance">Resistencia Actual:</label>
+                           <input type="number" id="armor-current-resistance" min="0" value="0">
+                       </div>
+                       <div class="form-group">
+                           <label for="armor-properties">Propiedades:</label>
+                           <textarea id="armor-properties"></textarea>
+                       </div>
+                       <button onclick="saveItem('armor')">Guardar Armadura</button>
+                   `;
+                   break;
+               case 'consumable':
+                   fields = `
+                       ${commonFields}
+                       <div class="form-group">
+                           <label for="consumable-effect">Efecto:</label>
+                           <textarea id="consumable-effect"></textarea>
+                       </div>
+                       <div class="form-group">
+                           <label for="consumable-quantity">Cantidad:</label>
+                           <input type="number" id="consumable-quantity" min="1" value="1">
+                       </div>
+                        <button onclick="saveItem('consumable')">Guardar Consumible</button>
+                    `;
+                    break;
+                case 'misc':
+                    fields = `
+                        ${commonFields}
+                        <div class="form-group">
+                            <label for="item-quantity">Cantidad:</label>
+                            <input type="number" id="item-quantity" min="1" value="1">
+                        </div>
+                        <button onclick="saveItem('misc')">Guardar Objeto</button>
+                    `;
+                    break;
+                case 'penalty':
+                    fields = `
+                        ${commonFields}
+                        <div class="form-group">
+                            <label>Campos de penalización pendientes de definir</label>
+                        </div>
+                        <button onclick="saveItem('penalty')">Guardar Penalización</button>
+                    `;
+                    break;
+            }
+
+            fieldsContainer.innerHTML = fields;
+        }
+
+        // Add new function to save items:
+        function saveItem(type) {
+            const baseItem = {
+                name: document.getElementById('item-name').value,
+                description: document.getElementById('item-description').value,
+                type: type
+            };
+
+            let item = {...baseItem};
+
+            switch(type) {
+                case 'weapon':
+                    item = {
+                        ...item,
+                        hands: parseInt(document.getElementById('weapon-hands').value),
+                        damage: document.getElementById('weapon-damage').value,
+                        maxDurability: parseInt(document.getElementById('weapon-max-durability').value),
+                        currentDurability: parseInt(document.getElementById('weapon-current-durability').value),
+                        properties: document.getElementById('weapon-properties').value
+                    };
+                    break;
+                case 'armor':
+                    item = {
+                        ...item,
+                        slot: document.getElementById('armor-slot').value,
+                        resistance: parseInt(document.getElementById('armor-resistance').value) || 0,
+                        block: parseInt(document.getElementById('armor-block').value) || 0,
+                        magic: parseInt(document.getElementById('armor-magic').value) || 0,
+                        extra: parseInt(document.getElementById('armor-extra').value) || 0,
+                        currentResistance: parseInt(document.getElementById('armor-current-resistance').value) || 0,
+                      properties: document.getElementById('armor-properties').value
+                  };
+                  break;
+              case 'consumable':
+                  item = {
+                      ...item,
+                      effect: document.getElementById('consumable-effect').value,
+                      quantity: parseInt(document.getElementById('consumable-quantity').value)
+                   };
+                   break;
+               case 'misc':
+                   item = {
+                       ...item,
+                       quantity: parseInt(document.getElementById('item-quantity').value)
+                   };
+                   break;
+               case 'penalty':
+                   item = {
+                       ...item,
+                       // Add penalty-specific fields here when defined
+                   };
+                   break;
+           }
+
+           inventory.push(item);
+           updateInventoryDisplay();
+           document.getElementById('add-item-form').style.display = 'none';
+       }
+
+       // Modified the inventory display function:
+       function updateInventoryDisplay() {
+           const inventoryContainer = document.getElementById('inventory-items');
+           if (!inventoryContainer) return;
+           
+           inventoryContainer.innerHTML = inventory.map((item, index) => `
+               <div class="inventory-item">
+                   <div>
+                       <strong>${item.name}</strong>
+                       ${item.quantity ? ` (x${item.quantity})` : ''}
+                       ${item.equipped ? '<span class="equipped-tag">Equipado</span>' : ''}
+                   </div>
+                   <div class="item-actions">
+                       ${(item.type === 'weapon' || item.type === 'armor') ? 
+                           `<button onclick="${item.equipped ? `unequipItem(${index})` : `equipItem(${index})`}">
+                               ${item.equipped ? 'Desequipar' : 'Equipar'}
+                           </button>` : ''}
+                       <button onclick="editItem(${index})">Editar</button>
+                       <button onclick="sellItem(${index})">Vender</button>
+                       <button onclick="removeItem(${index})">Eliminar</button>
+                   </div>
+               </div>
+           `).join('');
+       }
+
+       // Updated function to handle selling items:
+       function sellItem(index) {
+           const item = inventory[index];
+           
+           // Prompt for sale price
+           const salePrice = prompt(`¿Por cuánto oro quieres vender ${item.name}?`);
+           
+           // Check if user cancelled or entered an invalid number
+           if (salePrice === null || isNaN(salePrice)) {
+               return;
+           }
+
+           // Convert to number and ensure it's positive
+           const price = Math.abs(parseInt(salePrice));
+           
+           // Confirm sale
+           if (confirm(`¿Estás seguro de que quieres vender ${item.name} por ${price} de oro?`)) {
+               // Update character's gold
+               const currentGold = parseInt(document.getElementById('character-gold').value) || 0;
+               document.getElementById('character-gold').value = currentGold + price;
+               
+               // If item is equipped, unequip it first
+               if (item.equipped) {
+                   unequipItem(index);
+               }
+               
+               // Remove item from inventory
+               inventory.splice(index, 1);
+               
+               // Update inventory display
+               updateInventoryDisplay();
+           }
+       }
+
+       // New function to remove items from inventory
+       function removeItem(index) {
+           if(confirm('¿Estás seguro de que quieres eliminar este objeto?')) {
+               const item = inventory[index];
+               // If item is equipped, unequip it first
+               if(item.equipped) {
+                   unequipItem(index);
+               }
+               // Remove item from inventory
+               inventory.splice(index, 1);
+               updateInventoryDisplay();
+           }
+        }
+
+        // New function to toggle inventory view
+        function toggleInventoryView() {
+            const inventoryList = document.getElementById('inventory-list');
+            if (inventoryList.style.display === 'none') {
+                inventoryList.style.display = 'block';
+            } else {
+                inventoryList.style.display = 'none';
+            }
+        }
+
+        // Function to edit items in inventory
+        function editItem(index) {
+            const item = inventory[index];
+            const itemForm = document.getElementById('add-item-form');
+            
+            // Show the form
+            itemForm.style.display = 'block';
+            
+            // Set the item type and show corresponding fields
+            document.getElementById('item-type').value = item.type;
+            showItemFields();
+            
+            // Fill common fields
+            document.getElementById('item-name').value = item.name;
+            document.getElementById('item-description').value = item.description || '';
+            
+            // Fill specific fields based on item type
+            switch(item.type) {
+                case 'weapon':
+                    document.getElementById('weapon-hands').value = item.hands;
+                    document.getElementById('weapon-damage').value = item.damage;
+                    document.getElementById('weapon-max-durability').value = item.maxDurability;
+                    document.getElementById('weapon-current-durability').value = item.currentDurability;
+                    document.getElementById('weapon-properties').value = item.properties || '';
+                    break;
+                case 'armor':
+                    document.getElementById('armor-slot').value = item.slot;
+                    document.getElementById('armor-resistance').value = item.resistance;
+                    document.getElementById('armor-block').value = item.block;
+                    document.getElementById('armor-magic').value = item.magic;
+                    document.getElementById('armor-extra').value = item.extra;
+                    document.getElementById('armor-current-resistance').value = item.currentResistance;
+                    document.getElementById('armor-properties').value = item.properties || '';
+                    break;
+                case 'consumable':
+                    document.getElementById('consumable-effect').value = item.effect;
+                    document.getElementById('consumable-quantity').value = item.quantity;
+                    break;
+                case 'misc':
+                    document.getElementById('item-quantity').value = item.quantity;
+                    break;
+            }
+            
+            // Modify save buttons to update instead of create new
+            const saveButton = document.querySelector('#item-fields button');
+            if (saveButton) {
+                saveButton.textContent = 'Actualizar Objeto';
+                saveButton.onclick = () => updateItem(index);
+            }
+        }
+
+        // Add this function to handle the update
+       function updateItem(index) {
+            const type = document.getElementById('item-type').value;
+            const baseItem = {
+                name: document.getElementById('item-name').value,
+                description: document.getElementById('item-description').value,
+                type: type
+            };
+
+            let updatedItem = {...baseItem};
+
+            switch(type) {
+                case 'weapon':
+                    updatedItem = {
+                        ...updatedItem,
+                        hands: parseInt(document.getElementById('weapon-hands').value),
+                        damage: document.getElementById('weapon-damage').value,
+                        maxDurability: parseInt(document.getElementById('weapon-max-durability').value),
+                       currentDurability: parseInt(document.getElementById('weapon-current-durability').value),
+                       properties: document.getElementById('weapon-properties').value
+                   };
+                   break;
+               case 'armor':
+                   updatedItem = {
+                       ...updatedItem,
+                       slot: document.getElementById('armor-slot').value,
+                       resistance: parseInt(document.getElementById('armor-resistance').value) || 0,
+                       block: parseInt(document.getElementById('armor-block').value) || 0,
+                       magic: parseInt(document.getElementById('armor-magic').value) || 0,
+                       extra: parseInt(document.getElementById('armor-extra').value) || 0,
+                       currentResistance: parseInt(document.getElementById('armor-current-resistance').value) || 0,
+                       properties: document.getElementById('armor-properties').value
+                   };
+                   break;
+               case 'consumable':
+                   updatedItem = {
+                       ...updatedItem,
+                       effect: document.getElementById('consumable-effect').value,
+                       quantity: parseInt(document.getElementById('consumable-quantity').value)
+                   };
+                   break;
+               case 'misc':
+                   updatedItem = {
+                       ...updatedItem,
+                       quantity: parseInt(document.getElementById('item-quantity').value)
+                   };
+                   break;
+               case 'penalty':
+                   updatedItem = {
+                       ...updatedItem,
+                       // Add penalty-specific fields here when defined
+                   };
+                   break;
+           }
+           // Preserve equipped status
+           updatedItem.equipped = inventory[index].equipped;
+           // Update the item in inventory
+           inventory[index] = updatedItem;
+           
+           // Update displays
+           updateInventoryDisplay();
+           updateEquippedDisplay();
+           
+           // Hide the form
+           document.getElementById('add-item-form').style.display = 'none';
+       }
+       function toggleSection(sectionId, buttonElement) {
+           const section = document.getElementById(sectionId);
+           if (section.style.display === 'none') {
+               section.style.display = 'block';
+               buttonElement.textContent = 'Ocultar';
+           } else {
+               section.style.display = 'none';
+               buttonElement.textContent = 'Mostrar';
+           }
+       }
+       
+       function toggleGeneralSkills() {
+           const button = document.querySelector('#general-skills button');
+           toggleSection('general-skills-content', button);
+       }
+
+       function toggleCharacterList() {
+           const button = document.querySelector('#character-management-content button:last-child');
+           const characterList = document.getElementById('character-list');
+           if (characterList.style.display === 'none') {
+               characterList.style.display = 'block';
+               button.textContent = 'Ocultar Lista PJ';
+           } else {
+               characterList.style.display = 'none';
+               button.textContent = 'Mostrar Lista PJ';
+           }
+       }
+   </script>
+</body>
+</html>
